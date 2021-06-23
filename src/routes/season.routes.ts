@@ -1,28 +1,38 @@
-import { Season } from './../models/Season';
-import { Favorite } from './../models/Favorite';
-import { getRepository } from 'typeorm';
-import { Router } from "express";
+import { getRepository } from "typeorm";
+import { json, Router } from "express";
+import multer from "multer";
+
+import uploadConfig from "../config/upload";
+
 import CreateFavoriteSeasonService from "../services/CreateFavoriteSeasonService";
 import CreateSeasonService from "../services/CreateSeasonService";
 import RemoveFavoriteSeasonService from "../services/RemoveFavoriteSeasonService";
+import { Season } from "./../models/Season";
+import { Favorite } from "./../models/Favorite";
+import UpdateThumbnailService from "../services/UpdateThumbnailService";
 
 const seasonRouter = Router();
+const upload = multer(uploadConfig);
 
-seasonRouter.delete("/favorite/:userId/:seasonId", async (request, response) => {
-  try {
-    const { userId, seasonId } = request.params;
+seasonRouter.delete(
+  "/favorite/:userId/:seasonId",
+  async (request, response) => {
+    try {
+      const { userId, seasonId } = request.params;
 
-    const removeFavorite = new RemoveFavoriteSeasonService();
+      const removeFavorite = new RemoveFavoriteSeasonService();
 
-    await removeFavorite.execute({
-      user_id: userId, season_id: Number(seasonId),
-    });
+      await removeFavorite.execute({
+        user_id: userId,
+        season_id: Number(seasonId),
+      });
 
-    return response.status(200).send();
-  } catch (err) {
-    return response.status(400).json({ error: err.message });
+      return response.status(200).send();
+    } catch (err) {
+      return response.status(400).json({ error: err.message });
+    }
   }
-});
+);
 
 seasonRouter.post("/favorite", async (request, response) => {
   try {
@@ -31,7 +41,8 @@ seasonRouter.post("/favorite", async (request, response) => {
     const createFavorite = new CreateFavoriteSeasonService();
 
     const favorite = await createFavorite.execute({
-      user_id, season,
+      user_id,
+      season,
     });
 
     return response.json(favorite);
@@ -40,17 +51,15 @@ seasonRouter.post("/favorite", async (request, response) => {
   }
 });
 
-
 seasonRouter.get("/favorite/:userId", async (request, response) => {
   try {
     const { userId } = request.params;
 
     const favoriteRepository = getRepository(Favorite);
-    const favorites = await favoriteRepository
-      .find({
-        where: { user_id: userId },
-        relations: ['season'],
-      });
+    const favorites = await favoriteRepository.find({
+      where: { user_id: userId },
+      relations: ["season"],
+    });
 
     return response.status(200).json(favorites);
   } catch (err) {
@@ -81,7 +90,10 @@ seasonRouter.post("/", async (request, response) => {
 seasonRouter.get("/news", async (request, response) => {
   try {
     const seasonRepository = getRepository(Season);
-    const seasons = await seasonRepository.find({ isNew: true, watching: false })
+    const seasons = await seasonRepository.find({
+      isNew: true,
+      watching: false,
+    });
 
     return response.status(200).json(seasons);
   } catch (err) {
@@ -89,6 +101,19 @@ seasonRouter.get("/news", async (request, response) => {
   }
 });
 
+seasonRouter.patch(
+  "/:seasonId/thumbnail",
+  upload.single("thumbnail"),
+  async (request, response) => {
+    const updateThumbnail = new UpdateThumbnailService();
 
+    const season = await updateThumbnail.execute({
+      season_id: Number(request.params.seasonId),
+      thumbnailFileName: request.file.filename,
+    });
+
+    return response.json(season);
+  }
+);
 
 export default seasonRouter;
