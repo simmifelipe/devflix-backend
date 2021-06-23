@@ -1,4 +1,4 @@
-import { Column, Entity, IsNull, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 
 @Entity()
@@ -9,11 +9,11 @@ export class Season {
 
   @Column()
   name: string;
-  
-  @Column({nullable: true})
+
+  @Column({ nullable: true })
   thumbnail: string;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   image: string;
 
   @Column()
@@ -25,13 +25,19 @@ export class Season {
   @Column()
   season: string;
 
-  @Column({nullable: true})
-  currentEpisode: string;
+  @Column({ nullable: true })
+  current_episode: string;
 
-  @Column({default: 0})
+  @Column({ default: 0 })
   runningTime: number;
 
-  @Column({default: 0})
+  @Column({ default: 0 })
   progress: number;
+
+  @Column({ default: false })
+  watching: boolean;
+
+  @Column({ default: true })
+  isNew: boolean;
 
 }
