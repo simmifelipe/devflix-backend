@@ -10,9 +10,16 @@ import RemoveFavoriteSeasonService from "../services/RemoveFavoriteSeasonService
 import { Season } from "./../models/Season";
 import { Favorite } from "./../models/Favorite";
 import UpdateThumbnailService from "../services/UpdateThumbnailService";
+import UpdateImageService from "../services/UpdateImageService";
 
 const seasonRouter = Router();
 const upload = multer(uploadConfig);
+
+type CheckFavoriteRequest = {
+  userId: string;
+  seasonId: string;
+}
+
 
 seasonRouter.delete(
   "/favorite/:userId/:seasonId",
@@ -46,6 +53,27 @@ seasonRouter.post("/favorite", async (request, response) => {
     });
 
     return response.json(favorite);
+  } catch (err) {
+    return response.status(400).json({ error: err.message });
+  }
+});
+
+seasonRouter.get("/favorite/check/:userId/:seasonId", async (request, response) => {
+  try {
+    const { userId, seasonId } = request.params as CheckFavoriteRequest;
+
+    const favoriteRepository = getRepository(Favorite);
+    const isFavorite = await favoriteRepository.findOne({
+      user_id: userId,
+      season: {
+        id: Number(seasonId)
+      }
+    });
+
+    return isFavorite
+      ? response.status(200).json(true)
+      : response.status(200).json(false);
+
   } catch (err) {
     return response.status(400).json({ error: err.message });
   }
@@ -92,10 +120,37 @@ seasonRouter.get("/news", async (request, response) => {
     const seasonRepository = getRepository(Season);
     const seasons = await seasonRepository.find({
       isNew: true,
-      watching: false,
     });
 
     return response.status(200).json(seasons);
+  } catch (err) {
+    return response.status(400).json({ error: err.message });
+  }
+});
+
+seasonRouter.get("/watching", async (request, response) => {
+  try {
+    const seasonRepository = getRepository(Season);
+    const seasons = await seasonRepository.find({
+      watching: true,
+    });
+
+    return response.status(200).json(seasons);
+  } catch (err) {
+    return response.status(400).json({ error: err.message });
+  }
+});
+
+seasonRouter.post("/search", async (request, response) => {
+  try {
+    const { query } = request.body;
+
+    const result = await getRepository(Season)
+      .createQueryBuilder('season')
+      .where("season.name like :name", { name: `%${query}%` })
+      .getMany();
+
+    return response.status(200).json(result);
   } catch (err) {
     return response.status(400).json({ error: err.message });
   }
@@ -115,5 +170,22 @@ seasonRouter.patch(
     return response.json(season);
   }
 );
+
+seasonRouter.patch(
+  "/:seasonId/image",
+  upload.single("image"),
+  async (request, response) => {
+    const updateImage = new UpdateImageService();
+
+    const season = await updateImage.execute({
+      season_id: Number(request.params.seasonId),
+      imageFileName: request.file.filename,
+    });
+
+    return response.json(season);
+  }
+);
+
+
 
 export default seasonRouter;

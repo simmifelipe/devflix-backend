@@ -1,3 +1,4 @@
+import { randomInt } from "crypto";
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 
@@ -33,6 +34,9 @@ export class Season {
 
   @Column({ default: 0 })
   progress: number;
+
+  @Column({ type: 'decimal', default: 5.1 })
+  ratings: number;
 
   @Column({ default: false })
   watching: boolean;

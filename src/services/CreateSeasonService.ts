@@ -1,3 +1,4 @@
+import { randomInt } from 'crypto';
 import { getRepository } from "typeorm";
 import { Season } from "../models/Season";
 
@@ -15,7 +16,13 @@ class CreateSeasonService {
     const seasonRepository = getRepository(Season);
 
     const season = seasonRepository.create({
-      name, age, genre, season: seasonNumber, current_episode,
+      name,
+      age,
+      genre,
+      season: seasonNumber,
+      current_episode,
+      progress: randomInt(0, 95),
+      runningTime: randomInt(40, 59)
     });
 
     await seasonRepository.save(season);
