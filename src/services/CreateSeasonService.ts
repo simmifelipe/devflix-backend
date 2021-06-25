@@ -8,11 +8,13 @@ interface Request {
   genre: string;
   seasonNumber: string;
   current_episode: string;
+
+  isNew?: boolean;
 }
 
 class CreateSeasonService {
 
-  public async execute({ name, age, genre, seasonNumber, current_episode }: Request): Promise<Season> {
+  public async execute({ name, age, genre, seasonNumber, current_episode, isNew }: Request): Promise<Season> {
     const seasonRepository = getRepository(Season);
 
     const season = seasonRepository.create({
@@ -22,7 +24,8 @@ class CreateSeasonService {
       season: seasonNumber,
       current_episode,
       progress: randomInt(0, 95),
-      runningTime: randomInt(40, 59)
+      runningTime: randomInt(40, 59),
+      isNew,
     });
 
     await seasonRepository.save(season);

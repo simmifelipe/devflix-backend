@@ -11,10 +11,10 @@ export class Season {
   @Column()
   name: string;
 
-  @Column({ nullable: true })
+  @Column({ default: 'b106a1415f9d40c7aaa2-Image-Not-Available.png' })
   thumbnail: string;
 
-  @Column({ nullable: true })
+  @Column({ default: '2c4f5853fe89e6d410e1-product-default.png' })
   image: string;
 
   @Column()
@@ -41,7 +41,7 @@ export class Season {
   @Column({ default: false })
   watching: boolean;
 
-  @Column({ default: true })
+  @Column({ default: false })
   isNew: boolean;
 
 }

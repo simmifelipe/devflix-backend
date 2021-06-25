@@ -1,5 +1,9 @@
+import { randomInt } from 'crypto';
+import fs from 'fs';
+import csv from 'csv-parser'
+
 import { getRepository } from "typeorm";
-import { json, Router } from "express";
+import { Router } from "express";
 import multer from "multer";
 
 import uploadConfig from "../config/upload";
@@ -147,7 +151,7 @@ seasonRouter.post("/search", async (request, response) => {
 
     const result = await getRepository(Season)
       .createQueryBuilder('season')
-      .where("season.name like :name", { name: `%${query}%` })
+      .where("lower(season.name) like lower(:name)", { name: `%${query}%` })
       .getMany();
 
     return response.status(200).json(result);
@@ -175,17 +179,59 @@ seasonRouter.patch(
   "/:seasonId/image",
   upload.single("image"),
   async (request, response) => {
-    const updateImage = new UpdateImageService();
 
-    const season = await updateImage.execute({
-      season_id: Number(request.params.seasonId),
-      imageFileName: request.file.filename,
-    });
+    try {
+      const updateImage = new UpdateImageService();
 
-    return response.json(season);
+      const season = await updateImage.execute({
+        season_id: Number(request.params.seasonId),
+        imageFileName: request.file.filename,
+      });
+
+      return response.json(season);
+
+    } catch (err) {
+      return response.status(400).json({ error: err.message });
+    }
   }
 );
 
+// seasonRouter.get("/csv", async (request, response) => {
+//   try {
+//     const dados: any[] = [];
+//     const seasonService = new CreateSeasonService();
+//     fs.createReadStream('data.tsv')
+//       .pipe(csv({ separator: '\t' }))
+//       .on('data', (row) => {
+//         if (row.titleType === 'tvSeries' && Number(row.startYear) >= 2020) {
+//           console.log(row);
+//           dados.push(row);
+//         }
+//       })
+//       .on('end', async () => {
+//         console.log('CSV file successfully processed: ');
+//         console.log(dados.length)
 
+//         dados.map(async item => {
+//           const number = randomInt(1, 3);
+//           const episode = randomInt(1, 12);
+//           const season = await seasonService.execute({
+//             name: item.primaryTitle,
+//             age: randomInt(12, 18),
+//             genre: item.genres,
+//             seasonNumber: `TEMPORADA ${number}`,
+//             current_episode: `T${number} : E${episode}`,
+//             isNew: false,
+//           });
+//           console.log(season);
+//         });
+
+//         return response.status(200).json(true);
+//       });
+
+//   } catch (err) {
+//     return response.status(400).json({ error: err.message });
+//   }
+// });
 
 export default seasonRouter;

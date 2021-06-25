@@ -23,19 +23,6 @@ class UpdateThumbnailService {
       throw new Error("Season não encontrada");
     }
 
-    if (season.thumbnail) {
-      const seasonThumbnailFilePath = path.join(
-        uploadConfig.directory,
-        season.thumbnail
-      );
-      const seasonThumbnailFileExist = await fs.promises.stat(
-        seasonThumbnailFilePath
-      );
-
-      if (seasonThumbnailFileExist) {
-        await fs.promises.unlink(seasonThumbnailFilePath);
-      }
-    }
     season.thumbnail = thumbnailFileName;
 
     await seasonRepository.save(season);
